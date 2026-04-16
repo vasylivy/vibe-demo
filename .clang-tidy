@@ -1,0 +1,109 @@
+---
+# Demo clang-tidy configuration
+# Tuned for scientific C++ with Kokkos/MPI
+
+Checks: >
+  -*,
+  bugprone-*,
+  cert-dcl50-cpp,
+  cert-flp30-c,
+  cert-msc50-cpp,
+  cert-msc51-cpp,
+  cert-oop57-cpp,
+  clang-analyzer-*,
+  concurrency-mt-unsafe,
+  cppcoreguidelines-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -cppcoreguidelines-non-private-member-variables-in-classes,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -modernize-avoid-c-arrays,
+  -readability-function-cognitive-complexity,
+  -misc-non-private-member-variables-in-classes,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-identifier-naming,
+  -clang-analyzer-optin.mpi.MPI-Checker,
+
+WarningsAsErrors: '*'
+
+# Only lint headers under our own src/ and tests/ trees — Trilinos, Kokkos,
+# MPI, gtest, HDF5 and other TPL headers are excluded by not matching here,
+# and by the SYSTEM include flag we forward via cmake/ClangTidyMpi.cmake.
+HeaderFilterRegex: '(^|/)(src|tests)/.*\.(hpp|h)$'
+
+FormatStyle: file
+
+CheckOptions:
+  - key: misc-include-cleaner.IgnoreHeaders
+    value: 'Kokkos.*;Tpetra.*;Teuchos.*;Belos.*;MueLu.*;Ifpack2.*;Amesos2.*;Zoltan2.*;stk.*;Ioss.*;Shards.*;mpi\.h;gtest/.*;hdf5\.h;H5.*\.h'
+
+  - key: readability-function-size.LineThreshold
+    value: 100
+
+  # ── Naming conventions (scientific/HPC C++ style) ──
+  # Types: CamelCase
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypeTemplateParameterCase
+    value: CamelCase
+
+  # Functions/methods: lower_case
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.MethodCase
+    value: lower_case
+
+  # Variables/parameters: lower_case
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+
+  # Member variables: lower_case with trailing _
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.MemberSuffix
+    value: '_'
+  # Public members (POD structs): no trailing underscore
+  - key: readability-identifier-naming.PublicMemberCase
+    value: lower_case
+  - key: readability-identifier-naming.PublicMemberSuffix
+    value: ''
+
+  # Constants & enum values: UPPER_CASE
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.StaticConstantCase
+    value: UPPER_CASE
+
+  # Macros: UPPER_CASE
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+
+  # Namespaces: lower_case
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+...

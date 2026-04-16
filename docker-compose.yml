@@ -1,0 +1,44 @@
+services:
+  demo:
+    build: .
+    image: demo:dev
+    container_name: demo-dev
+    ports:
+      # SSH for iTerm2 tmux -CC integration
+      # Connect: ssh -t -p 2222 demo@localhost tmux -CC
+      - "127.0.0.1:2222:22"
+
+    # Load environment variables (API keys, etc.)
+    # This file is .gitignored — never committed.
+    env_file:
+      - path: .env.local
+        required: false
+
+    volumes:
+      # --- Bind Mount (two-way sync) ---
+      # Maps your host repo to /demo. The container-side path is unique
+      # per-project so Claude Code's memory key (-demo) doesn't collide
+      # with other containers that also mount at /app.
+      - .:/demo
+
+      # --- CLI Config (Claude Code + Gemini) ---
+      # Shares project memory, settings, and Gemini credentials with container.
+      - ~/.claude:/home/demo/.claude
+      - ~/.gemini:/home/demo/.gemini
+
+      # --- SSH Auth ---
+      # Mount host pub key as authorized_keys so SSH just works.
+      - ~/.ssh/id_rsa.pub:/home/demo/.ssh/authorized_keys:ro
+
+    # --- Performance (MPI shared-memory) ---
+    # OpenMPI vader transport uses /dev/shm; default 64MB can force slower fallback.
+    shm_size: '1g'
+
+    # --- Security hardening ---
+    # Block privilege escalation inside the container. sshd and gosu drop from
+    # root to the `demo` user at login; no setuid/setcap path above that line.
+    security_opt:
+      - no-new-privileges:true
+
+    stdin_open: true
+    tty: true

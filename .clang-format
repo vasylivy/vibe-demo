@@ -1,0 +1,47 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# Column & indentation
+ColumnLimit: 100
+IndentWidth: 2
+ContinuationIndentWidth: 4
+TabWidth: 2
+UseTab: Never
+
+# Braces: Allman for definitions, attached for control flow
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterEnum: true
+  AfterNamespace: true
+  AfterControlStatement: Never
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+# Pointers/references: left-aligned
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# C++20
+Standard: c++20
+RequiresClausePosition: OwnLine
+
+# Misc
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: Yes
+PackConstructorInitializers: NextLine
+SpaceAfterTemplateKeyword: true
+SpacesInAngles: Never
+...

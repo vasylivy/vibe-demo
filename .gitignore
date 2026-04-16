@@ -1,0 +1,9 @@
+build/
+build-lint/
+tpls/
+results/
+.env.local
+.cache/
+compile_commands.json
+*.e
+*.exo
