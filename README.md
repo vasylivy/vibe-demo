@@ -26,7 +26,7 @@ future runs:
 |  40 | `7.26224e-4`  | `4.37147e-2`      |
 |  80 | `1.81695e-4`  | `2.18211e-2`      |
 
-Fitted slopes: **L² = 1.99**, **H¹ = 1.02** — matches the Q1 theory
+Fitted slopes: **L² = 2.00**, **H¹ = 1.00** — matches the Q1 theory
 (`O(h²)` in L², `O(h)` in H¹). After a fresh run, diff the emitted
 `results/poisson_mms_q1_convergence.csv` against
 `gold/poisson_mms_q1_convergence.csv`. Should match 2-3 sig figs at least.
