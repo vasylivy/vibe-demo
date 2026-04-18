@@ -21,18 +21,9 @@ services:
       # with other containers that also mount at /app.
       - .:/demo
 
-      # --- CLI Config (Claude Code + Gemini) ---
-      # Shares project memory, settings, and Gemini credentials with container.
-      - ~/.claude:/home/demo/.claude
-      - ~/.gemini:/home/demo/.gemini
-
       # --- SSH Auth ---
       # Mount host pub key as authorized_keys so SSH just works.
       - ~/.ssh/id_rsa.pub:/home/demo/.ssh/authorized_keys:ro
-
-    # --- Performance (MPI shared-memory) ---
-    # OpenMPI vader transport uses /dev/shm; default 64MB can force slower fallback.
-    shm_size: '1g'
 
     # --- Security hardening ---
     # Block privilege escalation inside the container. sshd and gosu drop from

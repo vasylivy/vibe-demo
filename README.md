@@ -50,9 +50,9 @@ Practical consequences:
 - Any content Claude pulls in — web search results, fetched GitHub
   pages, files inside `/demo` — can attempt **prompt injection**.
   A successful injection can run arbitrary shell inside the
-  container, modify host files through the bind mounts (`.`,
-  `~/.claude`, `~/.gemini`), and exfiltrate your Anthropic OAuth
-  token.
+  container, modify host files through the `.` bind mount, and
+  exfiltrate the container's Anthropic OAuth token (ephemeral to
+  this container's lifetime).
 - The container is hardened (non-root, `no-new-privileges`,
   loopback-only SSH) but it is **not a sandbox**. Bind-mounted
   files are real host files.
@@ -160,16 +160,16 @@ cd /demo
 claude
 ```
 
-First run opens an OAuth URL; the token persists in the
-bind-mounted `~/.claude/`. At the prompt, after entering `/plan` mode enter:
+First run opens an OAuth URL; the token lives only inside the
+container, so every `podman-compose up --build` requires a fresh
+login. At the prompt, after entering `/plan` mode enter:
 
 ```
 Follow the instructions in @prompt.md.
 ```
 
-Prefer Gemini? `gemini` is installed in the image and `~/.gemini`
-is bind-mounted, so `gemini` in place of `claude` runs the same
-flow against Google's CLI.
+Prefer Gemini? `gemini` is installed in the image, so `gemini` in
+place of `claude` runs the same flow against Google's CLI.
 
 ## 8. Security posture
 
@@ -181,9 +181,9 @@ Local-dev only:
 - SSH: pubkey-only, loopback-bound, `PermitRootLogin no`,
   `PasswordAuthentication no`.
 - CLI versions are frozen at image build. Rebuild to upgrade.
-- Bind mounts: `.`, `~/.claude`, `~/.gemini`, your SSH pubkey.
-  `~/.claude` and `~/.gemini` are rw so CLI MEMORY.md persist across rebuilds — which means a compromised
-  container can read both. Only build images you control.
+- Bind mounts: `.` and your SSH pubkey. Host CLI state
+  (`~/.claude`, `~/.gemini`) is not mounted, so CLI MEMORY.md does
+  not persist across rebuilds.
 
 ## 9. Reset
 
