@@ -261,8 +261,14 @@ error. Constant and linear fields must both pass.
 - Error metrics: both
   - L²: `||u_h − u||_{L²}` = `sqrt(∫ (u_h − u)² dx)`,
   - H¹ seminorm: `|u_h − u|_{H¹}` = `sqrt(∫ |∇u_h − ∇u|² dx)`,
-  integrated on the physical domain (unit cube). Use one
-  element-wise `parallel_reduce` per norm, reusing the Jacobian
+  integrated on the physical domain (unit cube) using the **same
+  2×2×2 Gauss–Legendre rule as assembly**: NQP=8 on the [-1,1]³
+  reference element, `Trait::QP_WEIGHTS` summing to 8,
+  `det(J) = (h/2)³` on the uniform n-per-side unit-cube mesh.
+  Element-local integrand is `(u_h(x_q) − u(x_q))² × det(J) × w_q`
+  for L² and `|∇u_h(x_q) − ∇u(x_q)|² × det(J) × w_q` for H¹; sum
+  over owned elements only, `MPI_Allreduce(SUM)`, then `sqrt`. Use
+  one element-wise `parallel_reduce` per norm, reusing the Jacobian
   inverse from assembly to map `DN_DXI` into physical gradients.
 - Assertions on every consecutive pair of rungs:
   - L² rate `log2(e_L2_coarse / e_L2_fine)` lies in `[1.8, 2.2]`

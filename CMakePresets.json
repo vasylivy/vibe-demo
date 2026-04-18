@@ -36,7 +36,10 @@
       "name": "release",
       "displayName": "Release with debug symbols",
       "inherits": "base",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g"
+      }
     },
     {
       "name": "asan",
