@@ -5,12 +5,10 @@ basic 3D unstructured finite element Poisson solve on Trilinos
 (Tpetra/Belos/MueLu, STK mesh) from a single prompt
 ([`prompt.md`](./prompt.md)). Expected end state: a working solver
 that passes a Q1 MMS convergence sweep (L² error at O(h²), H¹ at
-O(h)) on `np=1` and `np=4`, with a log-log convergence plot dropped
-at `results/poisson_mms_q1_convergence.png`.
+O(h)) on `np=1` and `np=4`, with a log-log convergence plot written
+to `results/poisson_mms_q1_convergence.png`.
 
-Reference run: Opus 4.7 took about **1 hour** end-to-end, of which
-roughly **20 minutes** was the Trilinos build (`scripts/build_trilinos.sh`,
-created by Claude during the run).
+Expected wall time with Opus 4.7 on `/effort max` and Trilinos pre-built per §7 is roughly **1–2 hours** end-to-end.
 
 ## Reference convergence (gold)
 
@@ -21,15 +19,16 @@ future runs:
 
 |   n | L² error      | H¹-seminorm error |
 |----:|--------------:|------------------:|
-|  10 | `1.14436e-2`  | `1.80382e-1`      |
-|  20 | `2.89603e-3`  | `8.80031e-2`      |
-|  40 | `7.26224e-4`  | `4.37147e-2`      |
-|  80 | `1.81695e-4`  | `2.18211e-2`      |
+|  10 | `2.90959e-3`  | `1.74238e-1`      |
+|  20 | `7.27067e-4`  | `8.72061e-2`      |
+|  40 | `1.81748e-4`  | `4.36142e-2`      |
+|  80 | `4.54357e-5`  | `2.18085e-2`      |
 
 Fitted slopes: **L² = 2.00**, **H¹ = 1.00** — matches the Q1 theory
 (`O(h²)` in L², `O(h)` in H¹). After a fresh run, diff the emitted
 `results/poisson_mms_q1_convergence.csv` against
-`gold/poisson_mms_q1_convergence.csv`. Should match 2-3 sig figs at least.
+`gold/poisson_mms_q1_convergence.csv`; each value should agree to
+at least 2–3 significant figures.
 
 ## Disclaimer — run at your own risk
 
@@ -60,7 +59,7 @@ Practical consequences:
   running this against anything you care about.
 
 The rest of this README walks through the Podman + SSH setup the
-demo was authored against. §10 sketches VSCode Dev Containers you can use instead. Linux hosts skip §1.
+demo was authored against. §11 sketches VSCode Dev Containers you can use instead. Linux hosts skip §1.
 
 ## Prerequisites
 
@@ -138,7 +137,7 @@ ssh -t -p 2222 demo@localhost tmux -CC attach -t main
 
 The exposed SSH port also drives the
 [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)
-extension (§10 covers the more native Dev Containers route). Add to
+extension (§11 covers the more native Dev Containers route). Add to
 `~/.ssh/config`:
 
 ```
@@ -153,7 +152,20 @@ Then `⌘⇧P → Remote-SSH: Connect to Host… → demo-dev → Open Folder
 → /demo`. Language servers and terminals run inside the container;
 the editor UI stays on the host.
 
-## 7. Launch Claude Code
+## 7. Pre-build Trilinos
+
+Run this once before launching Claude so the agent can jump
+straight to writing code instead of paying the ~20-min TPL build.
+
+```bash
+cd /demo
+bash scripts/build_trilinos.sh
+```
+
+Pass `--clean` if you ever need to wipe the install prefixes and
+rebuild from scratch (source clones are kept).
+
+## 8. Launch Claude Code
 
 ```bash
 cd /demo
@@ -162,7 +174,7 @@ claude
 
 First run opens an OAuth URL; the token lives only inside the
 container, so every `podman-compose up --build` requires a fresh
-login. At the prompt, after entering `/plan` mode enter:
+login. At the Claude prompt, enter `/plan` mode, then submit:
 
 ```
 Follow the instructions in @prompt.md.
@@ -171,7 +183,7 @@ Follow the instructions in @prompt.md.
 Prefer Gemini? `gemini` is installed in the image, so `gemini` in
 place of `claude` runs the same flow against Google's CLI.
 
-## 8. Security posture
+## 9. Security posture
 
 Local-dev only:
 
@@ -185,16 +197,16 @@ Local-dev only:
   (`~/.claude`, `~/.gemini`) is not mounted, so CLI MEMORY.md does
   not persist across rebuilds.
 
-## 9. Reset
+## 10. Reset
 
 ```bash
 podman-compose down                            # stop
 podman-compose up --build --no-cache -d        # fresh image
 ```
 
-## 10. VSCode Dev Containers (alternative)
+## 11. VSCode Dev Containers (alternative)
 
-For an editor-native alternative to §3–§7, point the
+For an editor-native alternative to §3–§8, point the
 [Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers)
 extension at a `.devcontainer/devcontainer.json` that references
 this `Dockerfile` (or `docker-compose.yml`), then run `Reopen in

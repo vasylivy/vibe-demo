@@ -8,7 +8,8 @@
 #      Teuchos, Kokkos, KokkosKernels, Tpetra, Belos, Ifpack2, MueLu,
 #      Amesos2, Zoltan2, STK{Mesh,IO,Topology,Util,Search}, SEACASIoss.
 #
-# Idempotent: stamps a sentinel file on success so re-running is a no-op.
+# Idempotent: cmake + ninja short-circuit on an already-built tree,
+# so re-running is safe (and takes ~7 seconds once the install exists).
 # Compilers come from the MPI wrappers (mpicc / mpicxx), which wrap clang /
 # clang++ via OMPI_CC / OMPI_CXX set in the container environment.
 #
@@ -39,12 +40,10 @@ done
 GTEST_TAG="v1.14.0"
 GTEST_SRC="${TPLS}/googletest"
 GTEST_INSTALL="${INSTALL_DIR}/gtest"
-GTEST_STAMP="${GTEST_INSTALL}/.stamp"
 
 TRILINOS_TAG="trilinos-release-17-0-0"
 TRILINOS_SRC="${TPLS}/trilinos"
 TRILINOS_INSTALL="${INSTALL_DIR}/trilinos"
-TRILINOS_STAMP="${TRILINOS_INSTALL}/.stamp"
 
 if [[ "${CLEAN}" -eq 1 ]]; then
   printf '[build_trilinos] cleaning install + build dirs (keeping source clones)\n'
@@ -65,39 +64,29 @@ log() {
 }
 
 # ---------------------------------------------------------------------- gtest
-if [[ -f "${GTEST_STAMP}" ]]; then
-  log "gtest already installed at ${GTEST_INSTALL}; skipping."
-else
-  if [[ ! -d "${GTEST_SRC}/.git" ]]; then
-    log "shallow-cloning googletest ${GTEST_TAG}"
-    git clone --depth 1 --branch "${GTEST_TAG}" \
-      https://github.com/google/googletest.git "${GTEST_SRC}"
-  fi
-
-  log "configuring gtest"
-  cmake -S "${GTEST_SRC}" -B "${BUILD_DIR}/gtest" -G Ninja \
-    -DCMAKE_INSTALL_PREFIX="${GTEST_INSTALL}" \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_C_COMPILER=mpicc \
-    -DCMAKE_CXX_COMPILER=mpicxx \
-    -DCMAKE_CXX_STANDARD=20 \
-    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-    -DBUILD_SHARED_LIBS=OFF \
-    -DBUILD_GMOCK=OFF \
-    -DINSTALL_GTEST=ON
-
-  log "building + installing gtest"
-  cmake --build "${BUILD_DIR}/gtest" -j "${JOBS}"
-  cmake --install "${BUILD_DIR}/gtest"
-  touch "${GTEST_STAMP}"
+if [[ ! -d "${GTEST_SRC}/.git" ]]; then
+  log "shallow-cloning googletest ${GTEST_TAG}"
+  git clone --depth 1 --branch "${GTEST_TAG}" \
+    https://github.com/google/googletest.git "${GTEST_SRC}"
 fi
+
+log "configuring gtest"
+cmake -S "${GTEST_SRC}" -B "${BUILD_DIR}/gtest" -G Ninja \
+  -DCMAKE_INSTALL_PREFIX="${GTEST_INSTALL}" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_C_COMPILER=mpicc \
+  -DCMAKE_CXX_COMPILER=mpicxx \
+  -DCMAKE_CXX_STANDARD=20 \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+  -DBUILD_SHARED_LIBS=OFF \
+  -DBUILD_GMOCK=OFF \
+  -DINSTALL_GTEST=ON
+
+log "building + installing gtest"
+cmake --build "${BUILD_DIR}/gtest" -j "${JOBS}"
+cmake --install "${BUILD_DIR}/gtest"
 
 # -------------------------------------------------------------------- trilinos
-if [[ -f "${TRILINOS_STAMP}" ]]; then
-  log "trilinos already installed at ${TRILINOS_INSTALL}; skipping."
-  exit 0
-fi
-
 if [[ ! -d "${TRILINOS_SRC}/.git" ]]; then
   log "shallow-cloning trilinos ${TRILINOS_TAG}"
   git clone --depth 1 --branch "${TRILINOS_TAG}" \
@@ -166,6 +155,5 @@ cmake --build "${BUILD_DIR}/trilinos" -j "${JOBS}"
 
 log "installing trilinos"
 cmake --install "${BUILD_DIR}/trilinos"
-touch "${TRILINOS_STAMP}"
 
 log "done. Install prefix: ${TRILINOS_INSTALL}"
